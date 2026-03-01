@@ -259,19 +259,21 @@ class AutoBackend(nn.Module):
         # ONNX Runtime and IMX
         elif onnx or imx:
             LOGGER.info(f"Loading {w} for ONNX Runtime inference...")
-            check_requirements(("onnx", "onnxruntime-gpu" if cuda else "onnxruntime"))
+            # check_requirements(("onnx", "onnxruntime-gpu" if cuda else "onnxruntime"))
             import onnxruntime
 
-            # Select execution provider: CUDA > CoreML (mps) > CPU
+            # Select execution provider: CUDA > MIGraphX > CoreML (mps) > CPU
             available = onnxruntime.get_available_providers()
             if cuda and "CUDAExecutionProvider" in available:
                 providers = [("CUDAExecutionProvider", {"device_id": device.index}), "CPUExecutionProvider"]
+            elif "MIGraphXExecutionProvider" in available:
+                providers = [("MIGraphXExecutionProvider", {"device_id": device.index}), "CPUExecutionProvider"]
             elif device.type == "mps" and "CoreMLExecutionProvider" in available:
                 providers = ["CoreMLExecutionProvider", "CPUExecutionProvider"]
             else:
                 providers = ["CPUExecutionProvider"]
                 if cuda:
-                    LOGGER.warning("CUDA requested but CUDAExecutionProvider not available. Using CPU...")
+                    LOGGER.warning("CUDA requested but CUDAExecutionProvider/MIGraphXExecutionProvider not available. Using CPU...")
                     device, cuda = torch.device("cpu"), False
             LOGGER.info(
                 f"Using ONNX Runtime {onnxruntime.__version__} with {providers[0] if isinstance(providers[0], str) else providers[0][0]}"
