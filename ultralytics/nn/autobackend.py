@@ -267,7 +267,7 @@ class AutoBackend(nn.Module):
             if cuda and "CUDAExecutionProvider" in available:
                 providers = [("CUDAExecutionProvider", {"device_id": device.index}), "CPUExecutionProvider"]
             elif "MIGraphXExecutionProvider" in available:
-                providers = [("MIGraphXExecutionProvider", {"device_id": device.index}), "CPUExecutionProvider"]
+                providers = ["MIGraphXExecutionProvider", "CPUExecutionProvider"]
             elif device.type == "mps" and "CoreMLExecutionProvider" in available:
                 providers = ["CoreMLExecutionProvider", "CPUExecutionProvider"]
             else:
